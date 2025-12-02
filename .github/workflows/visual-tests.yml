@@ -1,0 +1,66 @@
+name: Run Percy Visual Tests
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout Website Repo (this repo)
+      - name: Checkout Website Repo
+        uses: actions/checkout@v4
+        with:
+          path: website
+
+      # 2. Checkout Test Repo
+      - name: Checkout Test Repo
+        uses: actions/checkout@v4
+        with:
+          repository: Abhishek93248/visual-test-puppeteer-percy
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: testrepo
+
+      # 3. Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      # 4. Install website dependencies
+      - name: Install Website Dependencies
+        working-directory: website
+        run: npm install
+
+      # 5. Install test dependencies
+      - name: Install Test Dependencies
+        working-directory: testrepo
+        run: npm install
+
+      # 6. Start website (localhost:3000)
+      - name: Start Website
+        working-directory: website
+        run: nohup npm start &
+
+      # 7. Wait until website is reachable
+      - name: Wait for Website to Start
+        run: |
+          for i in {1..25}; do
+            if curl -s http://localhost:3000 > /dev/null; then
+              echo "Website is up!";
+              exit 0;
+            fi
+            echo "Waiting for website...";
+            sleep 3;
+          done
+          echo "Website failed to start."
+          exit 1
+
+      # 8. Run Percy + Puppeteer Visual Tests
+      - name: Run Percy Visual Tests
+        working-directory: testrepo
+        env:
+          PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
+        run: |
+          npx percy exec -- node test.js

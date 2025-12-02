@@ -1,0 +1,15 @@
+{
+    "name": "simple-visual-website",
+    "version": "1.0.0",
+    "scripts": {
+      "start": "node server.js",
+      "local": "browserstack-local --key $BROWSERSTACK_ACCESS_KEY"
+    },
+    "dependencies": {
+      "express": "^4.18.2"
+    },
+    "devDependencies": {
+      "browserstack-local": "^1.4.12"
+    }
+  }
+  
